@@ -146,10 +146,12 @@ def data_scraper(pincode, product_url, driver):
         exit()
 
 base_url = "https://www.swiggy.com/instamart/item/{}?storeId=1402050"
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 for pincode in data['pincodes']:
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     location_entry(pincode, driver)
     for products in data['products']:
         url = base_url.format(products)
         data_scraper(pincode, url, driver)
-    driver.quit()
+    driver.get("https://www.swiggy.com/")
+    driver.delete_all_cookies()
+    driver.refresh()
