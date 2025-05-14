@@ -9,9 +9,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import re
 import json
+import tempfile
 import os
 
-excel_file = "instamart_product_up.xlsx"
+excel_file = "./data/instamart_product_up.xlsx"
 with open('data.json', 'r') as file:
     data = json.load(file)
 
@@ -47,8 +48,8 @@ def data_scraper(pincode, product_url, driver):
             seller_details = [line.text for line in seller_info_lines]
             store_address = " ".join(seller_details)
             print("Store Adress:", store_address)
-            final_price = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@data-testid='item-price']"))).text
-            mrp_price = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@data-testid='item-striked-price']"))).text
+            final_price = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@data-testid='item-offer-price']"))).text
+            mrp_price = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//*[@data-testid='item-mrp-price']"))).text
             print("Final Price:", final_price)
             print("MRP:", mrp_price)
             json_ld_script = WebDriverWait(driver, 10).until(
@@ -75,8 +76,8 @@ def data_scraper(pincode, product_url, driver):
                     try:
                         names = variant.find_elements(By.XPATH, './/div[@data-testid="variants-name"]')
                         variant_name = ' '.join([n.text for n in names])
-                        price = variant.find_element(By.XPATH, './/div[@data-testid="variants-price"]').text
-                        mrp = variant.find_element(By.XPATH, './/div[@data-testid="variants-mrp"]').text
+                        price = variant.find_element(By.XPATH, './/div[@data-testid="item-offer-price"]').text
+                        mrp = variant.find_element(By.XPATH, './/div[@data-testid="item-mrp-price"]').text
                         try:
                             discount = variant.find_element(By.XPATH, './/div[@data-testid="item-offer-label-discount-text"]').text
                         except:
@@ -146,7 +147,11 @@ def data_scraper(pincode, product_url, driver):
         exit()
 
 base_url = "https://www.swiggy.com/instamart/item/{}?storeId=1402050"
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+options = webdriver.ChromeOptions()
+options.add_argument('--headless=new')  
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 for pincode in data['pincodes']:
     location_entry(pincode, driver)
     for products in data['products']:
